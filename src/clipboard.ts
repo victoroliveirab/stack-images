@@ -1,25 +1,25 @@
 import { loadImage } from './utils';
 import type { Image } from '.';
 
-type PasteHandlerCallback = (image: Image) => void;
+type ClipboardHandlerCallback = (image: Image) => void;
 
-class PasteHandler {
+class ClipboardHandler {
   private V_KEY = 'KeyV';
-  private _callback?: PasteHandlerCallback;
+  private _callback?: ClipboardHandlerCallback;
 
   constructor() {
     document.addEventListener('keyup', ({ code, ctrlKey }) => {
       if (code === this.V_KEY && ctrlKey) {
-        this.handlePaste();
+        this.handleClipboard();
       }
     });
   }
 
-  set callback(callback: PasteHandlerCallback) {
+  set callback(callback: ClipboardHandlerCallback) {
     this._callback = callback;
   }
 
-  private async handlePaste() {
+  private async handleClipboard() {
     if (!this._callback)
       throw new Error('A callback must be set prior to pasting');
 
@@ -33,4 +33,4 @@ class PasteHandler {
   }
 }
 
-export default new PasteHandler();
+export default new ClipboardHandler();
