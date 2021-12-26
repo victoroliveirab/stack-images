@@ -1,0 +1,32 @@
+#container {
+  display: grid;
+  grid-template-rows: auto 20px;
+  grid-template-columns: auto 20px;
+}
+
+#canvas-wrapper {
+  grid-column: 1/2;
+  grid-row: 1/2;
+}
+
+#canvas {
+  border: 1px dashed rgba(0, 0, 0, 0.25);
+  background-image: repeating-linear-gradient(
+      45deg,
+      rgba(194, 194, 194, 0.1) 0px,
+      rgba(194, 194, 194, 0.1) 2px,
+      transparent 2px,
+      transparent 4px
+    ),
+    linear-gradient(90deg, #fff, #fff, #fff);
+}
+
+#add-right {
+  grid-column: 2/3;
+  grid-row: 1/2;
+}
+
+#add-below {
+  grid-column: 1/2;
+  grid-row: 2/3;
+}
