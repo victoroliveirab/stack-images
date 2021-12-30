@@ -6,21 +6,26 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StackImages</title>
-    <link href="./styles.css" type="stylesheet" />
+    <link href="./styles.css" rel="stylesheet" />
 </head>
 
 <body>
-    <div id="container">
-        <div id="canvas-wrapper">
-            <canvas id="canvas"></canvas>
+    <div id="wrapper">
+        <span class="label">Mode:</span>
+        <select id="mode">
+            <option value="below" selected>Below</option>
+            <option value="best-fit">Best-fit</option>
+            <option value="manual">Manual</option>
+            <option value="right">Right</option>
+        </select>
+        <div id="container">
+            <div id="canvas-wrapper">
+                <canvas id="canvas"></canvas>
+            </div>
+            <button id="paste-right">&rarr;</button>
+            <button id="paste-below">&darr;</button>
         </div>
     </div>
-    <select id="mode">
-        <option value="below" selected>Below</option>
-        <option value="best-fit">Best-fit (not working)</option>
-        <option value="manual">Manual</option>
-        <option value="right">Right</option>
-    </select>
     <script type="module" src="./dist/app.js"></script>
 </body>
 
