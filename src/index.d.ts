@@ -4,9 +4,9 @@ export type Coordinates = {
 };
 
 export type Image = HTMLImageElement;
-export type ImagePlacement = 'below' | 'right';
-export type ImageStack = {
+export type ImageInfo = {
   image: Image;
 } & Coordinates;
+export type ImagePlacement = 'below' | 'right';
 
 export type Strategies = 'below' | 'best-fit' | 'manual' | 'right';
