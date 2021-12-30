@@ -1,10 +1,8 @@
-import { minMax } from './utils';
-import type { Image, ImagePlacement, ImageStack } from '.';
+import { imagesIntersect, minMax } from './utils';
+import type { Coordinates, Image, ImagePlacement, ImageInfo } from '.';
 
 // TODO:
-// Create an algorithm to find best-fit holes to put image
-// Add images according to a pre-determined layout (with some guidelines)
-// Ask user if it prefers to overflow canvas or scale down image
+// Ask user if it prefers to overflow canvas or scale down image (in case of width larger than maxWidth)
 
 type CanvasConstructorOpts = {
   limitWidth?: boolean;
@@ -14,7 +12,8 @@ type CanvasConstructorOpts = {
 class Canvas {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private imgs: ImageStack[];
+  private imgs: ImageInfo[];
+  private pointsOfInterest: Coordinates[];
 
   private _limitWidth: boolean;
   private _maxWidth: number;
@@ -28,6 +27,7 @@ class Canvas {
     this.imgs = [];
     this._limitWidth = limitWidth;
     this._maxWidth = limitWidth ? maxWidth : 0;
+    this.pointsOfInterest = [];
 
     this.canvas.width = 0;
     this.canvas.height = 0;
@@ -72,7 +72,7 @@ class Canvas {
   addImage(image: Image, placement: ImagePlacement): void;
 
   addImage(image: Image, placement?: ImagePlacement) {
-    if (this.limitWidth) this.addImageWithLimitation(image);
+    if (!placement) this.addImageToBestFit(image);
     else if (placement === 'below') this.addImageBelow(image);
     else if (placement === 'right') this.addImageRight(image);
     else throw new Error('Invalid image placement');
@@ -82,16 +82,27 @@ class Canvas {
 
   // private methods
 
-  private addImageWithLimitation(image: Image) {
-    if (image.width > this.maxWidth) {
-      this.maxWidth = image.width;
-      return this.addImageBelow(image);
+  private addImageToBestFit(newImage: Image) {
+    // Naive way to find if a spot is empty or not
+
+    // 1- try to place the image starting as the left upper corner with one of the points on list. if it fits, put it. if not, try next
+    // 2- if no points are a fit, open a new "row"
+    for (const candidate of this.pointsOfInterest) {
+      // TODO: transform this into array method
+      let intersection = false;
+      const candidateImageInfo: ImageInfo = {
+        image: newImage,
+        x: candidate.x,
+        y: candidate.y,
+      };
+      for (const existingImage of this.imgs) {
+        intersection ||= imagesIntersect(candidateImageInfo, existingImage);
+        if (intersection) break;
+      }
+      if (!intersection && this.imageFitsIntoCanvas(candidateImageInfo))
+        return this.putImageOnCanvas(newImage, candidate.x, candidate.y);
     }
-
-    if (image.width + this.canvas.width > this.maxWidth)
-      return this.addImageBelow(image);
-
-    this.addImageRight(image);
+    return this.addImageBelow(newImage);
   }
 
   private addImageBelow(image: Image) {
@@ -118,17 +129,51 @@ class Canvas {
     return [this.canvas.width, this.canvas.height];
   }
 
+  private imageFitsIntoCanvas({ image: { width }, x }: ImageInfo) {
+    if (!this._limitWidth) return true;
+    return x + width <= this._maxWidth;
+  }
+
   private paint() {
     this.imgs.forEach(({ image, x, y }) => this.ctx.drawImage(image, x, y));
   }
 
   private putImageOnCanvas(image: Image, x: number, y: number) {
+    const newWidth = x + image.width;
+    const newHeight = y + image.height;
+
+    const upperRightCorner: Coordinates = {
+      x: newWidth,
+      y,
+    };
+    const bottomLeftCorner: Coordinates = {
+      x,
+      y: newHeight,
+    };
+    const bottomRightCorner: Coordinates = {
+      x: newWidth,
+      y: newHeight,
+    };
+
     this.imgs.push({ image, x, y });
+    this.pointsOfInterest.push(
+      ...[upperRightCorner, bottomLeftCorner, bottomRightCorner]
+    ); // TODO: this still adds duplicate points sometimes
+    this.resizeCanvasIfNeeded(newWidth, newHeight);
   }
 
   private resizeCanvas(width = this.canvas.width, height = this.canvas.height) {
+    this._maxWidth = Math.max(this._maxWidth, this.canvas.width, width);
+
     this.canvas.width = width;
     this.canvas.height = height;
+  }
+
+  private resizeCanvasIfNeeded(width = 0, height = 0) {
+    const newWidth = Math.max(this.canvas.width, width);
+    const newHeight = Math.max(this.canvas.height, height);
+
+    this.resizeCanvas(newWidth, newHeight);
   }
 }
 
